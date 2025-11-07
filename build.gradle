@@ -6,9 +6,9 @@ plugins {
     id 'java'
 }
 
-group = "com.xsasakihaise.hellasaudio"
-version = "1.0.0"
-archivesBaseName = "hellasaudio"
+group = mod_group_id
+version = mod_version
+archivesBaseName = mod_id
 
 java {
     toolchain {
@@ -17,7 +17,7 @@ java {
 }
 
 minecraft {
-    mappings channel: 'official', version: '1.16.5'
+    mappings channel: mapping_channel, version: mapping_version
 }
 
 repositories {
@@ -25,20 +25,20 @@ repositories {
 }
 
 dependencies {
-    compileOnly files('C:/Users/raehr/Documents/Hellas/HellasControl/build/libs/hellascontrol-1.0.0.jar')
-    minecraft 'net.minecraftforge:forge:1.16.5-36.2.42'
+    compileOnly files('libs/hellascontrol-2.1.0.jar')
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 }
 
 
 jar {
     manifest {
         attributes(
-                "Specification-Title": "HellasAudio",
-                "Specification-Vendor": "xSasaki_Haise",
-                "Specification-Version": "1",
-                "Implementation-Title": "HellasAudio",
-                "Implementation-Version":"1.0.0",
-                "Implementation-Vendor": "xSasaki_Haise"
+                "Specification-Title": mod_name,
+                "Specification-Vendor": mod_authors,
+                "Specification-Version": mod_version,
+                "Implementation-Title": mod_name,
+                "Implementation-Version": mod_version,
+                "Implementation-Vendor": mod_authors
         )
     }
 }

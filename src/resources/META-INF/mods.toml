@@ -1,12 +1,12 @@
 modLoader="javafml"
 loaderVersion="[36,)"
-logoFile="HellasAudio.png"
+logoFile="HellasWilds.png"
 license="Restricted"
 
 [[mods]]
-modId="hellasaudio"
+modId="hellaswilds"
 version="2.1.0"
-displayName="HellasAudio"
+displayName="HellasWilds"
 displayURL="https://discord.pixelmon-server.com"
 credits="xSasaki_Haise"
 authors="xSasaki_Haise"
@@ -14,23 +14,23 @@ description='''
 Welcome to Hellas :)
 '''
 
-[[dependencies.hellasaudio]]
+[[dependencies.hellaswilds]]
 modId="forge"
 mandatory=true
 versionRange="[36,)"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.hellasaudio]]
+[[dependencies.hellaswilds]]
 modId="minecraft"
 mandatory=true
 versionRange="[1.16.5,)"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.hellasaudio]]
+[[dependencies.hellaswilds]]
 modId="hellascontrol"
 mandatory=true
-versionRange="[1.0.0,)"
+versionRange="[2.1.0,)"
 ordering="NONE"
 side="BOTH"
