@@ -1,0 +1,11 @@
+{
+  "block.hellaswilds.barrier_segment": "Barrier Segment",
+  "block.hellaswilds.pillar": "Barrier Pillar",
+  "block.hellaswilds.gate_badge": "Gate Badge",
+  "itemGroup.hellaswilds": "Hellas Wilds",
+  "commands.hellaswilds.wilds.createzone.success": "Created zone %s (placeholder)",
+  "commands.hellaswilds.wilds.lock": "Gate locked (placeholder)",
+  "commands.hellaswilds.wilds.unlock": "Gate unlocked (placeholder)",
+  "commands.hellaswilds.wilds.visualize.on": "Zone visualization enabled (placeholder)",
+  "commands.hellaswilds.wilds.visualize.off": "Zone visualization disabled (placeholder)"
+}

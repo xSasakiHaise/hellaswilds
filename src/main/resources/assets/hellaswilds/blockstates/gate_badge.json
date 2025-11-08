@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "color=0": { "model": "hellaswilds:block/gate_badge" },
+    "color=1": { "model": "hellaswilds:block/gate_badge" },
+    "color=2": { "model": "hellaswilds:block/gate_badge" },
+    "color=3": { "model": "hellaswilds:block/gate_badge" },
+    "color=4": { "model": "hellaswilds:block/gate_badge" },
+    "color=5": { "model": "hellaswilds:block/gate_badge" },
+    "color=6": { "model": "hellaswilds:block/gate_badge" },
+    "color=7": { "model": "hellaswilds:block/gate_badge" },
+    "color=8": { "model": "hellaswilds:block/gate_badge" },
+    "color=9": { "model": "hellaswilds:block/gate_badge" },
+    "color=10": { "model": "hellaswilds:block/gate_badge" },
+    "color=11": { "model": "hellaswilds:block/gate_badge" },
+    "color=12": { "model": "hellaswilds:block/gate_badge" },
+    "color=13": { "model": "hellaswilds:block/gate_badge" },
+    "color=14": { "model": "hellaswilds:block/gate_badge" },
+    "color=15": { "model": "hellaswilds:block/gate_badge" }
+  }
+}
