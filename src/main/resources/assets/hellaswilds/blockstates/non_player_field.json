@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "locked=false": { "model": "minecraft:block/air" },
+    "locked=true": { "model": "minecraft:block/air" }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "multipart": [
+    {
+      "apply": { "model": "hellaswilds:block/pillar" }
+    }
+  ]
+}
