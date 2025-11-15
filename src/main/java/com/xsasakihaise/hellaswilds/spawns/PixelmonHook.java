@@ -26,6 +26,9 @@ public final class PixelmonHook {
     private PixelmonHook() {
     }
 
+    /**
+     * Registers the Forge listeners that monitor Pixelmon spawns and keep zone caps in sync.
+     */
     public static void bootstrap() {
         if (!HellasWilds.isPixelmonPresent()) {
             HellasWilds.LOGGER.warn("Pixelmon is not present; HellasWilds spawn overrides remain inactive.");
@@ -39,6 +42,9 @@ public final class PixelmonHook {
         HellasWilds.LOGGER.info("Pixelmon integration active: override zones will cancel native spawns when required.");
     }
 
+    /**
+     * Cancels Pixelmon spawns when a zone is at cap or is configured in override mode.
+     */
     private static void onEntityJoinWorld(final EntityJoinWorldEvent event) {
         if (event.getWorld().isRemote() || event.isCanceled() || event.isLoadedFromDisk()) {
             return;
@@ -74,6 +80,9 @@ public final class PixelmonHook {
         ZoneSpawnController.trackSpawn(zone, entity.getUniqueID());
     }
 
+    /**
+     * Releases slot reservations when an entity unloads naturally (e.g. chunks unloading).
+     */
     private static void onEntityLeaveWorld(final EntityLeaveWorldEvent event) {
         if (event.getWorld().isRemote()) {
             return;
@@ -89,6 +98,9 @@ public final class PixelmonHook {
         }
     }
 
+    /**
+     * Ensures the spawn controller is notified when a tracked Pixelmon faints or dies.
+     */
     private static void onLivingDeath(final LivingDeathEvent event) {
         final LivingEntity entity = event.getEntityLiving();
         if (entity.world.isRemote() || !isPixelmon(entity)) {
@@ -105,6 +117,10 @@ public final class PixelmonHook {
         return entity.getType().getRegistryName() != null && "pixelmon".equals(entity.getType().getRegistryName().getNamespace());
     }
 
+    /**
+     * Marks entities spawned by {@link ZoneSpawnController} so {@link #onEntityJoinWorld} knows to
+     * accept them even inside override zones.
+     */
     public static void markInternalSpawn(final Entity entity, final UUID zoneId) {
         final CompoundNBT data = entity.getPersistentData();
         data.putBoolean(TAG_INTERNAL, true);

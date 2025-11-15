@@ -24,6 +24,9 @@ public class BarrierSegmentBlock extends PaneBlock {
     public static final IntegerProperty COLOR = IntegerProperty.create("color", 0, 15);
     public static final IntegerProperty SECTION = IntegerProperty.create("section", 0, 2);
 
+    /**
+     * @param properties pane-like block properties (hardness, sound, etc.).
+     */
     public BarrierSegmentBlock(final Properties properties) {
         super(properties);
         this.setDefaultState(this.stateContainer.getBaseState()
@@ -63,6 +66,11 @@ public class BarrierSegmentBlock extends PaneBlock {
     }
 
     @Override
+    /**
+     * When the base segment (section 0) is placed we immediately materialise the two upper segments
+     * and extend the invisible barrier column upwards. This mimics vanilla multi-block placement so
+     * players cannot accidentally leave the gate half constructed.
+     */
     public void onBlockPlacedBy(final World world, final BlockPos pos, final BlockState state, final LivingEntity placer, final ItemStack stack) {
         super.onBlockPlacedBy(world, pos, state, placer, stack);
         if (world.isRemote) {
@@ -80,6 +88,10 @@ public class BarrierSegmentBlock extends PaneBlock {
     }
 
     @Override
+    /**
+     * Tears down the companion segments plus the vertical field column whenever the base is broken
+     * or replaced with another block.
+     */
     public void onReplaced(final BlockState state, final World world, final BlockPos pos, final BlockState newState, final boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
             if (!world.isRemote) {
@@ -99,6 +111,9 @@ public class BarrierSegmentBlock extends PaneBlock {
     }
 
     @Override
+    /**
+     * Ensures harvesting any segment deletes the entire three block tall stack and frees the column.
+     */
     public void onBlockHarvested(final World world, final BlockPos pos, final BlockState state, final PlayerEntity player) {
         if (!world.isRemote) {
             final int section = state.get(SECTION);

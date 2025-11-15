@@ -22,6 +22,15 @@ public final class BlocksUtil {
     private BlocksUtil() {
     }
 
+    /**
+     * Builds a vertical stack of {@link NonPlayerBarrierFieldBlock} instances above the provided
+     * barrier base to ensure the gate line reaches world height.
+     *
+     * @param world    server world the barrier lives in
+     * @param basePos  player-facing position used to determine the column footprint
+     * @param state    barrier block state that carries the section metadata
+     * @param height   number of barrier sections included in the multi-block structure
+     */
     public static void placeBarrierColumns(final World world, final BlockPos basePos, final BlockState state, final int height) {
         if (world.isRemote) {
             return;
@@ -30,6 +39,10 @@ public final class BlocksUtil {
         fillColumn(world, actualBase, actualBase.getY() + height, false);
     }
 
+    /**
+     * Mirrors {@link #placeBarrierColumns(World, BlockPos, BlockState, int)} but tailored to the
+     * pillar block which ships with a different height.
+     */
     public static void placePillarColumns(final World world, final BlockPos basePos, final BlockState state, final int height) {
         if (world.isRemote) {
             return;
@@ -38,6 +51,9 @@ public final class BlocksUtil {
         fillColumn(world, actualBase, actualBase.getY() + height, false);
     }
 
+    /**
+     * Removes the invisible barrier column when the gate structure is dismantled.
+     */
     public static void removeBarrierColumns(final World world, final BlockPos pos, final BlockState state, final int height) {
         if (world.isRemote) {
             return;
@@ -46,10 +62,17 @@ public final class BlocksUtil {
         clearColumn(world, actualBase, actualBase.getY() + height);
     }
 
+    /**
+     * @return {@code true} if the supplied state belongs to the invisible barrier field block.
+     */
     public static boolean isFieldBlock(final BlockState state) {
         return state.getBlock() instanceof NonPlayerBarrierFieldBlock;
     }
 
+    /**
+     * Resolves the "true" base position for multi-block pillars/segments by accounting for the
+     * section property baked into each state.
+     */
     public static BlockPos resolveBasePosition(final BlockState state, final BlockPos pos) {
         if (state.getBlock() instanceof BarrierSegmentBlock) {
             final int section = state.get(BarrierSegmentBlock.SECTION);
@@ -62,6 +85,12 @@ public final class BlocksUtil {
         return pos;
     }
 
+    /**
+     * Populates air with barrier field blocks from {@code startY} up to world height.
+     *
+     * @return immutable list containing every placed block position which allows gate tiles to
+     * toggle the locked state without rescanning chunks.
+     */
     public static List<BlockPos> fillColumn(final World world, final BlockPos base, final int startY, final boolean locked) {
         final List<BlockPos> placed = new ArrayList<>();
         final int worldTop = world.getHeight();
@@ -78,6 +107,9 @@ public final class BlocksUtil {
         return ImmutableList.copyOf(placed);
     }
 
+    /**
+     * Deletes any barrier field blocks between {@code startY} and the world roof.
+     */
     public static void clearColumn(final World world, final BlockPos base, final int startY) {
         final int worldTop = world.getHeight();
         for (int y = Math.max(startY, 0); y < worldTop; y++) {

@@ -80,6 +80,10 @@ public class GateBadgeTile extends TileEntity {
         return tag;
     }
 
+    /**
+     * Assigns the managed zone that owns this gate. The UUID is stored instead of the full object so
+     * the tile can survive world reloads.
+     */
     public void setZoneId(@Nullable final ZoneId zoneId) {
         this.zoneId = zoneId == null ? null : zoneId.getUuid();
         markDirty();
@@ -90,6 +94,9 @@ public class GateBadgeTile extends TileEntity {
         return zoneId;
     }
 
+    /**
+     * Updates the number rendered on the badge.
+     */
     public void setDisplayNumber(final int displayNumber) {
         this.displayNumber = displayNumber;
         markDirty();
@@ -99,6 +106,9 @@ public class GateBadgeTile extends TileEntity {
         return displayNumber;
     }
 
+    /**
+     * Stores the dye index for client renderers.
+     */
     public void setColor(final int color) {
         this.color = color;
         markDirty();
@@ -108,6 +118,9 @@ public class GateBadgeTile extends TileEntity {
         return color;
     }
 
+    /**
+     * Toggles whether the associated gate fields collide with players.
+     */
     public void setLocked(final boolean locked) {
         this.locked = locked;
         markDirty();
@@ -118,6 +131,9 @@ public class GateBadgeTile extends TileEntity {
         return locked;
     }
 
+    /**
+     * Caches the pillar endpoints detected during {@link com.xsasakihaise.hellaswilds.gate.GateLinker}.
+     */
     public void setLinkedPillars(final List<BlockPos> linkedPillars) {
         this.linkedPillars = ImmutableList.copyOf(linkedPillars);
         markDirty();
@@ -127,6 +143,10 @@ public class GateBadgeTile extends TileEntity {
         return linkedPillars;
     }
 
+    /**
+     * Stores the exact non-player field locations so they can be toggled or removed without a chunk
+     * scan.
+     */
     public void setGateFieldBlocks(final List<BlockPos> gateFieldBlocks) {
         this.gateFieldBlocks = ImmutableList.copyOf(gateFieldBlocks);
         markDirty();
@@ -136,6 +156,9 @@ public class GateBadgeTile extends TileEntity {
         return gateFieldBlocks;
     }
 
+    /**
+     * Records the invisible column extensions belonging to this gate.
+     */
     public void setColumnBlocks(final List<BlockPos> columnBlocks) {
         this.columnBlocks = ImmutableList.copyOf(columnBlocks);
         markDirty();
@@ -145,6 +168,9 @@ public class GateBadgeTile extends TileEntity {
         return columnBlocks;
     }
 
+    /**
+     * Stores the last detected zone bounds for use by rendering/debug commands.
+     */
     public void cacheBounds(@Nullable final AxisAlignedBB bounds) {
         this.cachedBounds = bounds;
         markDirty();
@@ -164,6 +190,10 @@ public class GateBadgeTile extends TileEntity {
                 "}");
     }
 
+    /**
+     * Iterates over cached field/column blocks and updates their LOCKED property. Doing this here
+     * keeps the state consistent even if tiles reload while the gate is locked.
+     */
     public void applyLockState() {
         if (world == null || world.isRemote) {
             return;

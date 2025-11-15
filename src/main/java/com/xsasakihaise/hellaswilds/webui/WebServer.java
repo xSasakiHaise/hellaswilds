@@ -59,6 +59,10 @@ public final class WebServer {
         this.tokenExpiryMillis = timeout.isZero() ? Long.MAX_VALUE : System.currentTimeMillis() + timeout.toMillis();
     }
 
+    /**
+     * Spins up an embedded HTTP server bound to 127.0.0.1 and returns a wrapper that knows how to
+     * proxy requests back onto the server thread.
+     */
     public static WebServer start(final MinecraftServer server,
                                   final World world,
                                   final UUID zoneId,
@@ -152,6 +156,9 @@ public final class WebServer {
         return new ArrayList<>(ZoneSpawnController.getRules(zone));
     }
 
+    /**
+     * Schedules a task onto the main thread and returns its result synchronously.
+     */
     private <T> T callServer(final ServerFunction<T> function) {
         final CompletableFuture<T> future = new CompletableFuture<>();
         minecraftServer.execute(() -> {

@@ -48,6 +48,10 @@ public final class HellasWilds {
     private static boolean hellasFormsPresent;
     private static boolean featureGateOpen;
 
+    /**
+     * Constructs the mod entrypoint and registers every Forge listener as early as possible so both
+     * logical sides receive the expected callbacks.
+     */
     public HellasWilds() {
         final IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         BlockRegistry.BLOCKS.register(modBus);
@@ -68,18 +72,33 @@ public final class HellasWilds {
         evaluateDependencies();
     }
 
+    /**
+     * @return {@code true} when both Pixelmon and HellasForms are present which allows the mod to
+     * perform its registrations.
+     */
     public static boolean featuresEnabled() {
         return featureGateOpen;
     }
 
+    /**
+     * @return {@code true} once the dependency scan detects the Pixelmon mod. Helper utilities rely
+     * on this check before invoking reflection heavy Pixelmon APIs.
+     */
     public static boolean isPixelmonPresent() {
         return pixelmonPresent;
     }
 
+    /**
+     * Utility for generating a namespaced identifier within the HellasWilds domain.
+     */
     public static ResourceLocation id(final String path) {
         return new ResourceLocation(MOD_ID, path);
     }
 
+    /**
+     * Inspects the loaded mod list and toggles the feature gate. This avoids partial initialisation
+     * when the supporting mods are missing.
+     */
     private void evaluateDependencies() {
         pixelmonPresent = ModList.get().isLoaded("pixelmon");
         hellasFormsPresent = ModList.get().isLoaded("hellasforms");
@@ -97,6 +116,10 @@ public final class HellasWilds {
         }
     }
 
+    /**
+     * Registers shared side infrastructure (commands, networking, spawn hooks) once the mod loading
+     * pipeline reaches the common setup phase.
+     */
     private void onCommonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
             if (!featuresEnabled()) {
@@ -110,6 +133,9 @@ public final class HellasWilds {
         });
     }
 
+    /**
+     * Performs client-only registrations such as tint handlers and tile renderers.
+     */
     private void onClientSetup(final FMLClientSetupEvent event) {
         NetworkRegistry.prepareClient();
         event.enqueueWork(() -> {
@@ -120,22 +146,34 @@ public final class HellasWilds {
         });
     }
 
+    /**
+     * Clears transient zone caches whenever a dedicated server instance is about to boot.
+     */
     private void onServerAboutToStart(final FMLServerAboutToStartEvent event) {
         ZoneCache.get().invalidateAll();
     }
 
+    /**
+     * Loads zone data for each world as it becomes available.
+     */
     private void onWorldLoad(final WorldEvent.Load event) {
         if (event.getWorld() instanceof ServerWorld) {
             ZoneCache.get().load((ServerWorld) event.getWorld());
         }
     }
 
+    /**
+     * Persists zone definitions whenever a world flushes to disk.
+     */
     private void onWorldSave(final WorldEvent.Save event) {
         if (event.getWorld() instanceof ServerWorld) {
             ZoneCache.get().save((ServerWorld) event.getWorld());
         }
     }
 
+    /**
+     * Saves every zone and shuts down the optional web UI when the server stops.
+     */
     private void onServerStopping(final FMLServerStoppingEvent event) {
         for (final ServerWorld world : event.getServer().getWorlds()) {
             ZoneCache.get().save(world);
@@ -143,6 +181,9 @@ public final class HellasWilds {
         WildsCommands.stopWebServer();
     }
 
+    /**
+     * Hooks into Forge's command registration event and adds the /hellas wilds namespace.
+     */
     private void onRegisterCommands(final RegisterCommandsEvent event) {
         WildsCommands.register(event.getDispatcher());
     }

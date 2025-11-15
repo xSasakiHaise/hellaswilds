@@ -29,6 +29,10 @@ public final class GateLinker {
     private GateLinker() {
     }
 
+    /**
+     * Attempts to pair a badge with the two closest pillars within the configured search radius and
+     * then builds the invisible gate geometry between them.
+     */
     public static void tryLinkGate(final World world, final BlockPos pos, final BlockState state, @Nullable final LivingEntity placer) {
         if (world.isRemote) {
             return;
@@ -65,6 +69,10 @@ public final class GateLinker {
         HellasWilds.LOGGER.info("Linked gate badge at {} with pillars {}", pos, closestTwo);
     }
 
+    /**
+     * Removes all cached gate geometry for the badge at {@code pos}. Invoked when the block breaks
+     * or relinks to different pillars.
+     */
     public static void clearGate(final World world, final BlockPos pos) {
         if (world.isRemote) {
             return;
@@ -77,6 +85,10 @@ public final class GateLinker {
         }
     }
 
+    /**
+     * Searches a cube around the badge position for pillar blocks. The method ignores validation and
+     * simply returns every candidate so the caller can pick the best pair.
+     */
     private static List<BlockPos> findNearbyPillars(final World world, final BlockPos pos, final int radius) {
         final List<BlockPos> result = new ArrayList<>();
         final BlockPos.Mutable mutable = new BlockPos.Mutable();
@@ -94,6 +106,10 @@ public final class GateLinker {
         return result;
     }
 
+    /**
+     * Populates the actual gate field between two pillars. Returns {@code false} if the pillars are
+     * misaligned or if any intervening column contains solid blocks.
+     */
     private static boolean buildGateGeometry(final World world, final BlockPos badgePos, final GateBadgeTile tile, final List<BlockPos> pillars) {
         final BlockPos pillarA = pillars.get(0);
         final BlockPos pillarB = pillars.get(1);
@@ -155,6 +171,10 @@ public final class GateLinker {
         return true;
     }
 
+    /**
+     * Checks whether the column is free of solid blocks (aside from existing field pieces) so we can
+     * safely place the non-player barrier.
+     */
     private static boolean isColumnClear(final World world, final BlockPos base, final int height) {
         for (int dy = 0; dy < height; dy++) {
             final BlockPos pos = base.up(dy);
@@ -166,6 +186,9 @@ public final class GateLinker {
         return true;
     }
 
+    /**
+     * Removes all tracked barrier field/column blocks from the world.
+     */
     private static void clearGeometry(final World world, final GateBadgeTile tile) {
         for (final BlockPos fieldPos : tile.getGateFieldBlocks()) {
             if (BlocksUtil.isFieldBlock(world.getBlockState(fieldPos))) {

@@ -106,6 +106,9 @@ public final class ZoneCache {
         zones.remove(dimension);
     }
 
+    /**
+     * Loads JSON persisted zones plus their spawn rules for the provided dimension.
+     */
     public synchronized void load(final ServerWorld world) {
         final RegistryKey<World> dimension = world.getDimensionKey();
         final Path worldPath = world.getServer().getWorldPath(FolderName.ROOT);
@@ -139,6 +142,9 @@ public final class ZoneCache {
         HellasWilds.LOGGER.info("Loaded {} HellasWilds zones for {}", loaded.size(), dimension.getLocation());
     }
 
+    /**
+     * Writes every zone and its associated spawn rules back to disk.
+     */
     public synchronized void save(final ServerWorld world) {
         final RegistryKey<World> dimension = world.getDimensionKey();
         final Map<UUID, ZoneData> map = zones.get(dimension);

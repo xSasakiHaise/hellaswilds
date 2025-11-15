@@ -28,6 +28,10 @@ public final class ZoneDetector {
 
     private static final int MAX_TILES = 50_000;
 
+    /**
+     * Executes the dual flood-fill heuristic and returns the winning region. Any overflow or invalid
+     * geometry results in a degenerate bounds box around the gate badge.
+     */
     public static Result detect(final World world, final BlockPos gatePos, final GateBadgeTile tile) {
         if (tile.getLinkedPillars().size() < 2) {
             HellasWilds.LOGGER.warn("Attempted zone detection without linked pillars at {}", gatePos);

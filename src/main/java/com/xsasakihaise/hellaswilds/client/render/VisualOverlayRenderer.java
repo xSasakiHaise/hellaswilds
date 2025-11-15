@@ -30,11 +30,18 @@ public final class VisualOverlayRenderer {
     private VisualOverlayRenderer() {
     }
 
+    /**
+     * Hooks client events that drive overlay rendering and automatic cleanup when the player leaves
+     * a server.
+     */
     public static void register() {
         MinecraftForge.EVENT_BUS.addListener(VisualOverlayRenderer::onRenderWorldLast);
         MinecraftForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggedOutEvent event) -> clear());
     }
 
+    /**
+     * Accepts overlay data from the server and caches it for rendering in subsequent frames.
+     */
     public static void setOverlay(final VisualOverlayS2CPacket packet) {
         BOXES.clear();
         if (packet != null) {
@@ -45,6 +52,9 @@ public final class VisualOverlayRenderer {
         }
     }
 
+    /**
+     * Clears the cached geometry so the renderer stops drawing overlays immediately.
+     */
     public static void clear() {
         BOXES.clear();
     }
