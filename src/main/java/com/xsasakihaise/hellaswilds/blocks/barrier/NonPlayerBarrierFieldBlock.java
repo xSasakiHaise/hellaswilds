@@ -47,6 +47,10 @@ public class NonPlayerBarrierFieldBlock extends Block {
         return SHAPE;
     }
 
+    /**
+     * Only exposes collision geometry to non-players (and locked players) so walking through an
+     * unlocked gate feels seamless.
+     */
     @Override
     public VoxelShape getCollisionShape(final BlockState state, final IBlockReader world, final BlockPos pos, final ISelectionContext context) {
         final Entity entity = context.getEntity();
@@ -62,6 +66,10 @@ public class NonPlayerBarrierFieldBlock extends Block {
         return SHAPE;
     }
 
+    /**
+     * Applies heavy drag to items/projectiles and freezes non-player movement so mobs cannot glitch
+     * through the field while the gate is locked.
+     */
     @Override
     public void onEntityCollision(final BlockState state, final World world, final BlockPos pos, final Entity entity) {
         final boolean locked = state.get(LOCKED);

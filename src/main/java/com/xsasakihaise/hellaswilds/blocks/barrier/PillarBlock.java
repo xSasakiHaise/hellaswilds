@@ -22,6 +22,9 @@ public class PillarBlock extends Block {
     public static final IntegerProperty COLOR = IntegerProperty.create("color", 0, 15);
     public static final IntegerProperty SECTION = IntegerProperty.create("section", 0, 3);
 
+    /**
+     * @param properties base block traits for the pillar (stone hardness, etc.).
+     */
     public PillarBlock(final Properties properties) {
         super(properties);
         this.setDefaultState(this.stateContainer.getBaseState().with(COLOR, 0).with(SECTION, 0));
@@ -51,6 +54,9 @@ public class PillarBlock extends Block {
     }
 
     @Override
+    /**
+     * Extends the placed pillar to the configured height whenever the base is planted.
+     */
     public void onBlockPlacedBy(final World world, final BlockPos pos, final BlockState state, final LivingEntity placer, final ItemStack stack) {
         super.onBlockPlacedBy(world, pos, state, placer, stack);
         if (world.isRemote) {
@@ -68,6 +74,9 @@ public class PillarBlock extends Block {
     }
 
     @Override
+    /**
+     * Removes all linked pillar segments when the base is swapped out.
+     */
     public void onReplaced(final BlockState state, final World world, final BlockPos pos, final BlockState newState, final boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
             if (!world.isRemote && state.get(SECTION) == 0) {
@@ -84,6 +93,10 @@ public class PillarBlock extends Block {
     }
 
     @Override
+    /**
+     * When any section is harvested we tear down the entire stack and barrier column for a clean
+     * rebuild later.
+     */
     public void onBlockHarvested(final World world, final BlockPos pos, final BlockState state, final PlayerEntity player) {
         if (!world.isRemote) {
             final int section = state.get(SECTION);

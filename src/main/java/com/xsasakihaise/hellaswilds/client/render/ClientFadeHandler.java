@@ -25,6 +25,10 @@ public final class ClientFadeHandler {
     private ClientFadeHandler() {
     }
 
+    /**
+     * Installs the client tick listener. Idempotent so repeated invocations from reload listeners
+     * remain safe.
+     */
     public static void register() {
         if (registered) {
             return;
@@ -33,6 +37,10 @@ public final class ClientFadeHandler {
         MinecraftForge.EVENT_BUS.addListener(ClientFadeHandler::onClientTick);
     }
 
+    /**
+     * Exposed to renderers so they can force a glow even when the collision sampling has not yet
+     * noticed the player.
+     */
     public static void triggerFade() {
         fadeProgress = 1.0F;
     }
@@ -70,6 +78,9 @@ public final class ClientFadeHandler {
         }
     }
 
+    /**
+     * @return value in [0,1] used to scale emissive intensity on the badge renderer.
+     */
     public static float getFadeProgress() {
         return MathHelper.clamp(fadeProgress, 0.0F, 1.0F);
     }

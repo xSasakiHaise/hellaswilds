@@ -34,6 +34,9 @@ public class GateBadgeBlock extends Block {
         builder.add(COLOR);
     }
 
+    /**
+     * Captures the chosen dye colour from the held item and applies it to the placed badge block.
+     */
     @Nullable
     @Override
     public BlockState getStateForPlacement(final BlockItemUseContext context) {
@@ -41,6 +44,10 @@ public class GateBadgeBlock extends Block {
         return this.getDefaultState().with(COLOR, color);
     }
 
+    /**
+     * Syncs the tile entity with the chosen colour and immediately attempts to link the gate to
+     * nearby pillars.
+     */
     @Override
     public void onBlockPlacedBy(final World world, final BlockPos pos, final BlockState state, final LivingEntity placer, final ItemStack stack) {
         super.onBlockPlacedBy(world, pos, state, placer, stack);
@@ -53,6 +60,9 @@ public class GateBadgeBlock extends Block {
         GateLinker.tryLinkGate(world, pos, state, placer);
     }
 
+    /**
+     * Clears previously linked geometry when the badge is removed.
+     */
     @Override
     public void onReplaced(final BlockState state, final World world, final BlockPos pos, final BlockState newState, final boolean isMoving) {
         super.onReplaced(state, world, pos, newState, isMoving);

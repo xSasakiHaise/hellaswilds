@@ -61,6 +61,10 @@ public final class WildsCommands {
     private WildsCommands() {
     }
 
+    /**
+     * Registers the /hellas wilds command tree which exposes zone creation, locking and spawn rule
+     * tweaks to staff.
+     */
     public static void register(final CommandDispatcher<CommandSource> dispatcher) {
         dispatcher.register(Commands.literal("hellas")
                 .requires(source -> source.hasPermissionLevel(2))
@@ -97,6 +101,9 @@ public final class WildsCommands {
                                                 .executes(ctx -> setCap(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "amount"))))))));
     }
 
+    /**
+     * Shuts down the embedded HTTP server when the hosting world unloads or the command is rerun.
+     */
     public static void stopWebServer() {
         if (activeWebServer != null) {
             activeWebServer.stop();
@@ -104,6 +111,10 @@ public final class WildsCommands {
         }
     }
 
+    /**
+     * Flood-fills the gate interior and persists a new {@link ZoneData} entry bound to the closest
+     * gate.
+     */
     private static int createZone(final CommandSource source, final int number, final String ownerArg, final String region) throws CommandSyntaxException {
         ensureFeatures();
         final String owner = ownerArg.toLowerCase(Locale.ROOT);
@@ -135,6 +146,9 @@ public final class WildsCommands {
         return 1;
     }
 
+    /**
+     * Toggles barrier locking for the gate nearest to the executing source.
+     */
     private static int setLock(final CommandSource source, final boolean locked) throws CommandSyntaxException {
         ensureFeatures();
         final ServerWorld world = source.getWorld();
@@ -145,6 +159,9 @@ public final class WildsCommands {
         return 1;
     }
 
+    /**
+     * Turns the translucent zone overlay on or off for the requesting staff member.
+     */
     private static int visualize(final CommandSource source, final boolean enable) throws CommandSyntaxException {
         ensureFeatures();
         final ServerPlayerEntity player = source.asPlayer();
@@ -165,6 +182,9 @@ public final class WildsCommands {
         return 1;
     }
 
+    /**
+     * Lists all configured spawn rules for the zone the executor currently stands inside.
+     */
     private static int listSpawns(final CommandSource source) throws CommandSyntaxException {
         ensureFeatures();
         final ServerPlayerEntity player = source.asPlayer();
@@ -190,6 +210,9 @@ public final class WildsCommands {
         return 1;
     }
 
+    /**
+     * Launches the embedded web UI so staff can edit the active zone using a browser.
+     */
     private static int openEditor(final CommandSource source) throws CommandSyntaxException {
         ensureFeatures();
         final ServerPlayerEntity player = source.asPlayer();
@@ -213,6 +236,9 @@ public final class WildsCommands {
         return 1;
     }
 
+    /**
+     * Updates the spawn blending mode (additive/override) for the current zone.
+     */
     private static int setMode(final CommandSource source, final String modeArg) throws CommandSyntaxException {
         ensureFeatures();
         final ServerPlayerEntity player = source.asPlayer();
@@ -232,6 +258,9 @@ public final class WildsCommands {
         return 1;
     }
 
+    /**
+     * Persists a new spawn cap which limits the number of Pixelmon the controller may keep alive.
+     */
     private static int setCap(final CommandSource source, final int cap) throws CommandSyntaxException {
         ensureFeatures();
         final ServerPlayerEntity player = source.asPlayer();
@@ -251,6 +280,10 @@ public final class WildsCommands {
         }
     }
 
+    /**
+     * Locates the nearest gate badge within a generous radius so staff do not need to stand on the
+     * exact block when running commands.
+     */
     private static GateContext findGate(final ServerWorld world, final BlockPos origin) throws CommandSyntaxException {
         final int radius = 20;
         GateContext best = null;
@@ -276,6 +309,9 @@ public final class WildsCommands {
         return best;
     }
 
+    /**
+     * Helper that throws a friendly exception when commands are executed outside a managed zone.
+     */
     private static ZoneData requireZone(final ServerWorld world, final BlockPos pos) throws CommandSyntaxException {
         final ZoneData zone = ZoneCache.get().findZone(world, pos);
         if (zone == null) {
