@@ -32,7 +32,7 @@ public final class BlocksUtil {
      * @param height   number of barrier sections included in the multi-block structure
      */
     public static void placeBarrierColumns(final World world, final BlockPos basePos, final BlockState state, final int height) {
-        if (world.isRemote) {
+        if (world.isClientSide) {
             return;
         }
         final BlockPos actualBase = resolveBasePosition(state, basePos);
@@ -44,7 +44,7 @@ public final class BlocksUtil {
      * pillar block which ships with a different height.
      */
     public static void placePillarColumns(final World world, final BlockPos basePos, final BlockState state, final int height) {
-        if (world.isRemote) {
+        if (world.isClientSide) {
             return;
         }
         final BlockPos actualBase = resolveBasePosition(state, basePos);
@@ -55,7 +55,7 @@ public final class BlocksUtil {
      * Removes the invisible barrier column when the gate structure is dismantled.
      */
     public static void removeBarrierColumns(final World world, final BlockPos pos, final BlockState state, final int height) {
-        if (world.isRemote) {
+        if (world.isClientSide) {
             return;
         }
         final BlockPos actualBase = resolveBasePosition(state, pos);
@@ -75,12 +75,12 @@ public final class BlocksUtil {
      */
     public static BlockPos resolveBasePosition(final BlockState state, final BlockPos pos) {
         if (state.getBlock() instanceof BarrierSegmentBlock) {
-            final int section = state.get(BarrierSegmentBlock.SECTION);
-            return pos.down(section);
+            final int section = state.getValue(BarrierSegmentBlock.SECTION);
+            return pos.below(section);
         }
         if (state.getBlock() instanceof PillarBlock) {
-            final int section = state.get(PillarBlock.SECTION);
-            return pos.down(section);
+            final int section = state.getValue(PillarBlock.SECTION);
+            return pos.below(section);
         }
         return pos;
     }
@@ -93,15 +93,15 @@ public final class BlocksUtil {
      */
     public static List<BlockPos> fillColumn(final World world, final BlockPos base, final int startY, final boolean locked) {
         final List<BlockPos> placed = new ArrayList<>();
-        final int worldTop = world.getHeight();
-        final BlockState fieldState = BlockRegistry.NON_PLAYER_FIELD.get().getDefaultState().with(NonPlayerBarrierFieldBlock.LOCKED, locked);
+        final int worldTop = world.getMaxBuildHeight();
+        final BlockState fieldState = BlockRegistry.NON_PLAYER_FIELD.get().defaultBlockState().setValue(NonPlayerBarrierFieldBlock.LOCKED, locked);
         for (int y = Math.max(startY, 0); y < worldTop; y++) {
             final BlockPos target = new BlockPos(base.getX(), y, base.getZ());
             final BlockState existing = world.getBlockState(target);
             if (!existing.isAir(world, target) && !isFieldBlock(existing)) {
                 continue;
             }
-            world.setBlockState(target, fieldState, 3);
+            world.setBlock(target, fieldState, 3);
             placed.add(target);
         }
         return ImmutableList.copyOf(placed);
@@ -111,7 +111,7 @@ public final class BlocksUtil {
      * Deletes any barrier field blocks between {@code startY} and the world roof.
      */
     public static void clearColumn(final World world, final BlockPos base, final int startY) {
-        final int worldTop = world.getHeight();
+        final int worldTop = world.getMaxBuildHeight();
         for (int y = Math.max(startY, 0); y < worldTop; y++) {
             final BlockPos target = new BlockPos(base.getX(), y, base.getZ());
             final BlockState existing = world.getBlockState(target);

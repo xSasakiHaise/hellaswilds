@@ -8,7 +8,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.IntegerProperty;
-import net.minecraft.state.StateContainer;
+import net.minecraft.state.StateDefinition;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -29,31 +29,31 @@ public class BarrierSegmentBlock extends PaneBlock {
      */
     public BarrierSegmentBlock(final Properties properties) {
         super(properties);
-        this.setDefaultState(this.stateContainer.getBaseState()
-                .with(NORTH, false)
-                .with(EAST, false)
-                .with(SOUTH, false)
-                .with(WEST, false)
-                .with(COLOR, 0)
-                .with(SECTION, 0));
+        this.registerDefaultState(this.stateDefinition.any()
+                .setValue(NORTH, false)
+                .setValue(EAST, false)
+                .setValue(SOUTH, false)
+                .setValue(WEST, false)
+                .setValue(COLOR, 0)
+                .setValue(SECTION, 0));
     }
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<net.minecraft.block.Block, BlockState> builder) {
-        super.fillStateContainer(builder);
+    protected void createBlockStateDefinition(final StateDefinition.Builder<net.minecraft.block.Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
         builder.add(COLOR, SECTION);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(final BlockItemUseContext context) {
-        final World world = context.getWorld();
-        final BlockPos pos = context.getPos();
-        if (pos.getY() > world.getHeight() - 3) {
+        final World world = context.getLevel();
+        final BlockPos pos = context.getClickedPos();
+        if (pos.getY() > world.getMaxBuildHeight() - 3) {
             return null;
         }
         for (int i = 1; i < 3; i++) {
-            if (!world.isAirBlock(pos.up(i))) {
+            if (!world.isEmptyBlock(pos.above(i))) {
                 return null;
             }
         }
@@ -61,8 +61,8 @@ public class BarrierSegmentBlock extends PaneBlock {
         if (state == null) {
             return null;
         }
-        final int color = ColorVariantBlockItem.getColor(context.getItem());
-        return state.with(COLOR, color).with(SECTION, 0);
+        final int color = ColorVariantBlockItem.getColor(context.getItemInHand());
+        return state.setValue(COLOR, color).setValue(SECTION, 0);
     }
 
     @Override
@@ -71,17 +71,17 @@ public class BarrierSegmentBlock extends PaneBlock {
      * and extend the invisible barrier column upwards. This mimics vanilla multi-block placement so
      * players cannot accidentally leave the gate half constructed.
      */
-    public void onBlockPlacedBy(final World world, final BlockPos pos, final BlockState state, final LivingEntity placer, final ItemStack stack) {
-        super.onBlockPlacedBy(world, pos, state, placer, stack);
-        if (world.isRemote) {
+    public void setPlacedBy(final World world, final BlockPos pos, final BlockState state, final LivingEntity placer, final ItemStack stack) {
+        super.setPlacedBy(world, pos, state, placer, stack);
+        if (world.isClientSide) {
             return;
         }
-        final int section = state.get(SECTION);
+        final int section = state.getValue(SECTION);
         if (section == 0) {
             for (int i = 1; i < 3; i++) {
-                final BlockPos segmentPos = pos.up(i);
-                final BlockState segmentState = state.with(SECTION, i);
-                world.setBlockState(segmentPos, segmentState, 3);
+                final BlockPos segmentPos = pos.above(i);
+                final BlockState segmentState = state.setValue(SECTION, i);
+                world.setBlock(segmentPos, segmentState, 3);
             }
             BlocksUtil.placeBarrierColumns(world, pos, state, 3);
         }
@@ -92,13 +92,13 @@ public class BarrierSegmentBlock extends PaneBlock {
      * Tears down the companion segments plus the vertical field column whenever the base is broken
      * or replaced with another block.
      */
-    public void onReplaced(final BlockState state, final World world, final BlockPos pos, final BlockState newState, final boolean isMoving) {
+    public void onRemove(final BlockState state, final World world, final BlockPos pos, final BlockState newState, final boolean isMoving) {
         if (state.getBlock() != newState.getBlock()) {
-            if (!world.isRemote) {
-                final int section = state.get(SECTION);
+            if (!world.isClientSide) {
+                final int section = state.getValue(SECTION);
                 if (section == 0) {
                     for (int i = 1; i < 3; i++) {
-                        final BlockPos segmentPos = pos.up(i);
+                        final BlockPos segmentPos = pos.above(i);
                         if (world.getBlockState(segmentPos).getBlock() == this) {
                             world.removeBlock(segmentPos, false);
                         }
@@ -107,25 +107,25 @@ public class BarrierSegmentBlock extends PaneBlock {
                 }
             }
         }
-        super.onReplaced(state, world, pos, newState, isMoving);
+        super.onRemove(state, world, pos, newState, isMoving);
     }
 
     @Override
     /**
      * Ensures harvesting any segment deletes the entire three block tall stack and frees the column.
      */
-    public void onBlockHarvested(final World world, final BlockPos pos, final BlockState state, final PlayerEntity player) {
-        if (!world.isRemote) {
-            final int section = state.get(SECTION);
+    public void playerWillDestroy(final World world, final BlockPos pos, final BlockState state, final PlayerEntity player) {
+        if (!world.isClientSide) {
+            final int section = state.getValue(SECTION);
             if (section > 0) {
-                final BlockPos basePos = pos.down(section);
+                final BlockPos basePos = pos.below(section);
                 final BlockState baseState = world.getBlockState(basePos);
                 if (baseState.getBlock() == this) {
                     world.destroyBlock(basePos, !player.isCreative());
                 }
             } else {
                 for (int i = 1; i < 3; i++) {
-                    final BlockPos segmentPos = pos.up(i);
+                    final BlockPos segmentPos = pos.above(i);
                     if (world.getBlockState(segmentPos).getBlock() == this) {
                         world.removeBlock(segmentPos, false);
                     }
@@ -133,6 +133,6 @@ public class BarrierSegmentBlock extends PaneBlock {
                 BlocksUtil.removeBarrierColumns(world, pos, state, 3);
             }
         }
-        super.onBlockHarvested(world, pos, state, player);
+        super.playerWillDestroy(world, pos, state, player);
     }
 }
