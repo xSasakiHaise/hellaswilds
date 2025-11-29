@@ -46,7 +46,7 @@ public final class PixelmonHook {
      * Cancels Pixelmon spawns when a zone is at cap or is configured in override mode.
      */
     private static void onEntityJoinWorld(final EntityJoinWorldEvent event) {
-        if (event.getWorld().isRemote() || event.isCanceled() || event.isLoadedFromDisk()) {
+        if (event.getWorld().isClientSide() || event.isCanceled() || event.isLoadedFromDisk()) {
             return;
         }
         if (!(event.getWorld() instanceof ServerWorld)) {
@@ -75,16 +75,16 @@ public final class PixelmonHook {
             return;
         }
 
-        data.putUniqueId(TAG_ZONE, zone.getId().getUuid());
+        data.putUUID(TAG_ZONE, zone.getId().getUuid());
         data.remove(TAG_INTERNAL);
-        ZoneSpawnController.trackSpawn(zone, entity.getUniqueID());
+        ZoneSpawnController.trackSpawn(zone, entity.getUUID());
     }
 
     /**
      * Releases slot reservations when an entity unloads naturally (e.g. chunks unloading).
      */
     private static void onEntityLeaveWorld(final EntityLeaveWorldEvent event) {
-        if (event.getWorld().isRemote()) {
+        if (event.getWorld().isClientSide()) {
             return;
         }
         final Entity entity = event.getEntity();
@@ -92,8 +92,8 @@ public final class PixelmonHook {
             return;
         }
         final CompoundNBT data = entity.getPersistentData();
-        if (data.hasUniqueId(TAG_ZONE)) {
-            ZoneSpawnController.releaseSpawn(data.getUniqueId(TAG_ZONE), entity.getUniqueID());
+        if (data.hasUUID(TAG_ZONE)) {
+            ZoneSpawnController.releaseSpawn(data.getUUID(TAG_ZONE), entity.getUUID());
             data.remove(TAG_ZONE);
         }
     }
@@ -103,12 +103,12 @@ public final class PixelmonHook {
      */
     private static void onLivingDeath(final LivingDeathEvent event) {
         final LivingEntity entity = event.getEntityLiving();
-        if (entity.world.isRemote() || !isPixelmon(entity)) {
+        if (entity.world.isClientSide() || !isPixelmon(entity)) {
             return;
         }
         final CompoundNBT data = entity.getPersistentData();
-        if (data.hasUniqueId(TAG_ZONE)) {
-            ZoneSpawnController.releaseSpawn(data.getUniqueId(TAG_ZONE), entity.getUniqueID());
+        if (data.hasUUID(TAG_ZONE)) {
+            ZoneSpawnController.releaseSpawn(data.getUUID(TAG_ZONE), entity.getUUID());
             data.remove(TAG_ZONE);
         }
     }
@@ -124,6 +124,6 @@ public final class PixelmonHook {
     public static void markInternalSpawn(final Entity entity, final UUID zoneId) {
         final CompoundNBT data = entity.getPersistentData();
         data.putBoolean(TAG_INTERNAL, true);
-        data.putUniqueId(TAG_ZONE, zoneId);
+        data.putUUID(TAG_ZONE, zoneId);
     }
 }

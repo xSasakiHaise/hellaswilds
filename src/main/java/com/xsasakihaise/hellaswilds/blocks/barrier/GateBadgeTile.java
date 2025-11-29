@@ -46,10 +46,10 @@ public class GateBadgeTile extends TileEntity {
     }
 
     @Override
-    public void read(final BlockState state, final CompoundNBT tag) {
-        super.read(state, tag);
-        if (tag.hasUniqueId("ZoneId")) {
-            this.zoneId = tag.getUniqueId("ZoneId");
+    public void load(final BlockState state, final CompoundNBT tag) {
+        super.load(state, tag);
+        if (tag.hasUUID("ZoneId")) {
+            this.zoneId = tag.getUUID("ZoneId");
         }
         this.displayNumber = tag.getInt("DisplayNumber");
         this.color = tag.getInt("Color");
@@ -63,10 +63,10 @@ public class GateBadgeTile extends TileEntity {
     }
 
     @Override
-    public CompoundNBT write(final CompoundNBT tag) {
-        super.write(tag);
+    public CompoundNBT save(final CompoundNBT tag) {
+        super.save(tag);
         if (zoneId != null) {
-            tag.putUniqueId("ZoneId", zoneId);
+            tag.putUUID("ZoneId", zoneId);
         }
         tag.putInt("DisplayNumber", displayNumber);
         tag.putInt("Color", color);
@@ -86,7 +86,7 @@ public class GateBadgeTile extends TileEntity {
      */
     public void setZoneId(@Nullable final ZoneId zoneId) {
         this.zoneId = zoneId == null ? null : zoneId.getUuid();
-        markDirty();
+        setChanged();
     }
 
     @Nullable
@@ -99,7 +99,7 @@ public class GateBadgeTile extends TileEntity {
      */
     public void setDisplayNumber(final int displayNumber) {
         this.displayNumber = displayNumber;
-        markDirty();
+        setChanged();
     }
 
     public int getDisplayNumber() {
@@ -111,7 +111,7 @@ public class GateBadgeTile extends TileEntity {
      */
     public void setColor(final int color) {
         this.color = color;
-        markDirty();
+        setChanged();
     }
 
     public int getColor() {
@@ -123,7 +123,7 @@ public class GateBadgeTile extends TileEntity {
      */
     public void setLocked(final boolean locked) {
         this.locked = locked;
-        markDirty();
+        setChanged();
         applyLockState();
     }
 
@@ -136,7 +136,7 @@ public class GateBadgeTile extends TileEntity {
      */
     public void setLinkedPillars(final List<BlockPos> linkedPillars) {
         this.linkedPillars = ImmutableList.copyOf(linkedPillars);
-        markDirty();
+        setChanged();
     }
 
     public List<BlockPos> getLinkedPillars() {
@@ -149,7 +149,7 @@ public class GateBadgeTile extends TileEntity {
      */
     public void setGateFieldBlocks(final List<BlockPos> gateFieldBlocks) {
         this.gateFieldBlocks = ImmutableList.copyOf(gateFieldBlocks);
-        markDirty();
+        setChanged();
     }
 
     public List<BlockPos> getGateFieldBlocks() {
@@ -161,7 +161,7 @@ public class GateBadgeTile extends TileEntity {
      */
     public void setColumnBlocks(final List<BlockPos> columnBlocks) {
         this.columnBlocks = ImmutableList.copyOf(columnBlocks);
-        markDirty();
+        setChanged();
     }
 
     public List<BlockPos> getColumnBlocks() {
@@ -173,7 +173,7 @@ public class GateBadgeTile extends TileEntity {
      */
     public void cacheBounds(@Nullable final AxisAlignedBB bounds) {
         this.cachedBounds = bounds;
-        markDirty();
+        setChanged();
     }
 
     @Nullable
@@ -195,16 +195,16 @@ public class GateBadgeTile extends TileEntity {
      * keeps the state consistent even if tiles reload while the gate is locked.
      */
     public void applyLockState() {
-        if (world == null || world.isRemote) {
+        if (level == null || level.isClientSide) {
             return;
         }
         final List<BlockPos> positions = new ArrayList<>(gateFieldBlocks.size() + columnBlocks.size());
         positions.addAll(gateFieldBlocks);
         positions.addAll(columnBlocks);
         for (final BlockPos fieldPos : positions) {
-            final BlockState state = world.getBlockState(fieldPos);
+            final BlockState state = level.getBlockState(fieldPos);
             if (state.getBlock() == BlockRegistry.NON_PLAYER_FIELD.get()) {
-                world.setBlockState(fieldPos, state.with(NonPlayerBarrierFieldBlock.LOCKED, locked), 2 | 16);
+                level.setBlock(fieldPos, state.setValue(NonPlayerBarrierFieldBlock.LOCKED, locked), 2 | 16);
             }
         }
     }

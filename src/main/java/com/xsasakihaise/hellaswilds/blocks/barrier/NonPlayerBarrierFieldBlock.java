@@ -16,7 +16,7 @@ import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.state.BooleanProperty;
-import net.minecraft.state.StateContainer;
+import net.minecraft.state.StateDefinition;
 
 /**
  * Invisible barrier used to block non-player entities. The collision shape is exposed for any
@@ -24,21 +24,21 @@ import net.minecraft.state.StateContainer;
  * players can walk through it without resistance.
  */
 public class NonPlayerBarrierFieldBlock extends Block {
-    private static final VoxelShape SHAPE = Block.makeCuboidShape(0, 0, 0, 16, 16, 16);
+    private static final VoxelShape SHAPE = Block.box(0, 0, 0, 16, 16, 16);
     private static final VoxelShape NO_COLLISION = VoxelShapes.empty();
     public static final BooleanProperty LOCKED = BooleanProperty.create("locked");
 
     public NonPlayerBarrierFieldBlock() {
-        super(AbstractBlock.Properties.create(Material.BARRIER)
+        super(AbstractBlock.Properties.of(Material.BARRIER)
                 .hardnessAndResistance(-1.0F, 3600000.0F)
                 .noDrops()
                 .doesNotBlockMovement()
-                .sound(SoundType.CLOTH));
-        this.setDefaultState(this.stateContainer.getBaseState().with(LOCKED, false));
+                .sound(SoundType.WOOL));
+        this.registerDefaultState(this.stateDefinition.any().setValue(LOCKED, false));
     }
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(LOCKED);
     }
 
@@ -54,7 +54,7 @@ public class NonPlayerBarrierFieldBlock extends Block {
     @Override
     public VoxelShape getCollisionShape(final BlockState state, final IBlockReader world, final BlockPos pos, final ISelectionContext context) {
         final Entity entity = context.getEntity();
-        final boolean locked = state.get(LOCKED);
+        final boolean locked = state.getValue(LOCKED);
         if (entity instanceof PlayerEntity && !locked) {
             return NO_COLLISION;
         }
@@ -72,16 +72,16 @@ public class NonPlayerBarrierFieldBlock extends Block {
      */
     @Override
     public void onEntityCollision(final BlockState state, final World world, final BlockPos pos, final Entity entity) {
-        final boolean locked = state.get(LOCKED);
+        final boolean locked = state.getValue(LOCKED);
         if (entity instanceof PlayerEntity && !locked) {
             return;
         }
         if (!(entity instanceof PlayerEntity)) {
-            entity.setMotion(entity.getMotion().mul(0, 1, 0));
+            entity.setDeltaMovement(entity.getDeltaMovement().multiply(0, 1, 0));
         }
         if (entity instanceof ItemEntity || entity instanceof ProjectileEntity) {
-            entity.setMotion(entity.getMotion().mul(0, 0, 0));
-            entity.setPosition(entity.getPosX(), Math.max(entity.getPosY(), pos.getY() + 0.5), entity.getPosZ());
+            entity.setDeltaMovement(entity.getDeltaMovement().multiply(0, 0, 0));
+            entity.setPos(entity.getX(), Math.max(entity.getY(), pos.getY() + 0.5), entity.getZ());
         }
     }
 }

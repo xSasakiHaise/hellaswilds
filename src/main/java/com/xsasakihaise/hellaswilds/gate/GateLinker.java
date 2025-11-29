@@ -34,7 +34,7 @@ public final class GateLinker {
      * then builds the invisible gate geometry between them.
      */
     public static void tryLinkGate(final World world, final BlockPos pos, final BlockState state, @Nullable final LivingEntity placer) {
-        if (world.isRemote) {
+        if (world.isClientSide) {
             return;
         }
 
@@ -49,7 +49,7 @@ public final class GateLinker {
                 .limit(2)
                 .collect(Collectors.toList());
 
-        final TileEntity tileEntity = world.getTileEntity(pos);
+        final TileEntity tileEntity = world.getBlockEntity(pos);
         if (!(tileEntity instanceof GateBadgeTile)) {
             HellasWilds.LOGGER.warn("Gate badge tile missing at {} while attempting to link gate.", pos);
             return;
@@ -74,10 +74,10 @@ public final class GateLinker {
      * or relinks to different pillars.
      */
     public static void clearGate(final World world, final BlockPos pos) {
-        if (world.isRemote) {
+        if (world.isClientSide) {
             return;
         }
-        final TileEntity tileEntity = world.getTileEntity(pos);
+        final TileEntity tileEntity = world.getBlockEntity(pos);
         if (tileEntity instanceof GateBadgeTile) {
             final GateBadgeTile badgeTile = (GateBadgeTile) tileEntity;
             clearGeometry(world, badgeTile);
@@ -119,8 +119,8 @@ public final class GateLinker {
         final List<BlockPos> gateField = new ArrayList<>();
         final List<BlockPos> columnBlocks = new ArrayList<>();
         final boolean locked = tile.isLocked();
-        final BlockState fieldState = BlockRegistry.NON_PLAYER_FIELD.get().getDefaultState()
-                .with(NonPlayerBarrierFieldBlock.LOCKED, locked);
+        final BlockState fieldState = BlockRegistry.NON_PLAYER_FIELD.get().defaultBlockState()
+                .setValue(NonPlayerBarrierFieldBlock.LOCKED, locked);
         final int baseY = badgePos.getY();
 
         if (deltaX == 0 && deltaZ != 0) {
@@ -136,8 +136,8 @@ public final class GateLinker {
                     return false;
                 }
                 for (int dy = 0; dy < 3; dy++) {
-                    final BlockPos fieldPos = columnBase.up(dy);
-                    world.setBlockState(fieldPos, fieldState, 3);
+                    final BlockPos fieldPos = columnBase.above(dy);
+                    world.setBlock(fieldPos, fieldState, 3);
                     gateField.add(fieldPos);
                 }
                 columnBlocks.addAll(BlocksUtil.fillColumn(world, columnBase, baseY + 3, locked));
@@ -155,8 +155,8 @@ public final class GateLinker {
                     return false;
                 }
                 for (int dy = 0; dy < 3; dy++) {
-                    final BlockPos fieldPos = columnBase.up(dy);
-                    world.setBlockState(fieldPos, fieldState, 3);
+                    final BlockPos fieldPos = columnBase.above(dy);
+                    world.setBlock(fieldPos, fieldState, 3);
                     gateField.add(fieldPos);
                 }
                 columnBlocks.addAll(BlocksUtil.fillColumn(world, columnBase, baseY + 3, locked));
@@ -177,7 +177,7 @@ public final class GateLinker {
      */
     private static boolean isColumnClear(final World world, final BlockPos base, final int height) {
         for (int dy = 0; dy < height; dy++) {
-            final BlockPos pos = base.up(dy);
+            final BlockPos pos = base.above(dy);
             final BlockState state = world.getBlockState(pos);
             if (!state.isAir(world, pos) && !BlocksUtil.isFieldBlock(state)) {
                 return false;

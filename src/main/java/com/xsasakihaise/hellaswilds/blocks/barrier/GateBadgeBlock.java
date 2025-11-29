@@ -8,7 +8,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.IntegerProperty;
-import net.minecraft.state.StateContainer;
+import net.minecraft.state.StateDefinition;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
@@ -25,12 +25,12 @@ public class GateBadgeBlock extends Block {
 
     public GateBadgeBlock(final Properties properties) {
         super(properties);
-        this.setDefaultState(this.stateContainer.getBaseState().with(COLOR, 0));
+        this.registerDefaultState(this.stateDefinition.any().setValue(COLOR, 0));
     }
 
     @Override
-    protected void fillStateContainer(final StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
+    protected void createBlockStateDefinition(final StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
         builder.add(COLOR);
     }
 
@@ -40,8 +40,8 @@ public class GateBadgeBlock extends Block {
     @Nullable
     @Override
     public BlockState getStateForPlacement(final BlockItemUseContext context) {
-        final int color = ColorVariantBlockItem.getColor(context.getItem());
-        return this.getDefaultState().with(COLOR, color);
+        final int color = ColorVariantBlockItem.getColor(context.getItemInHand());
+        return this.defaultBlockState().setValue(COLOR, color);
     }
 
     /**
@@ -49,12 +49,12 @@ public class GateBadgeBlock extends Block {
      * nearby pillars.
      */
     @Override
-    public void onBlockPlacedBy(final World world, final BlockPos pos, final BlockState state, final LivingEntity placer, final ItemStack stack) {
-        super.onBlockPlacedBy(world, pos, state, placer, stack);
-        if (!world.isRemote) {
-            final TileEntity tile = world.getTileEntity(pos);
+    public void setPlacedBy(final World world, final BlockPos pos, final BlockState state, final LivingEntity placer, final ItemStack stack) {
+        super.setPlacedBy(world, pos, state, placer, stack);
+        if (!world.isClientSide) {
+            final TileEntity tile = world.getBlockEntity(pos);
             if (tile instanceof GateBadgeTile) {
-                ((GateBadgeTile) tile).setColor(state.get(COLOR));
+                ((GateBadgeTile) tile).setColor(state.getValue(COLOR));
             }
         }
         GateLinker.tryLinkGate(world, pos, state, placer);
@@ -64,8 +64,8 @@ public class GateBadgeBlock extends Block {
      * Clears previously linked geometry when the badge is removed.
      */
     @Override
-    public void onReplaced(final BlockState state, final World world, final BlockPos pos, final BlockState newState, final boolean isMoving) {
-        super.onReplaced(state, world, pos, newState, isMoving);
+    public void onRemove(final BlockState state, final World world, final BlockPos pos, final BlockState newState, final boolean isMoving) {
+        super.onRemove(state, world, pos, newState, isMoving);
         if (state.getBlock() != newState.getBlock()) {
             GateLinker.clearGate(world, pos);
         }
