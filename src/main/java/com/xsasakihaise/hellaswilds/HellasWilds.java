@@ -12,12 +12,15 @@ import com.xsasakihaise.hellaswilds.registry.NetworkRegistry;
 import com.xsasakihaise.hellaswilds.registry.TileRegistry;
 import com.xsasakihaise.hellaswilds.spawns.PixelmonHook;
 import com.xsasakihaise.hellaswilds.zone.ZoneCache;
+import com.xsasakihaise.hellascontrol.CoreCheck;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -42,7 +45,10 @@ import org.apache.logging.log4j.Logger;
 public final class HellasWilds {
     public static final String MOD_ID = "hellaswilds";
 
-    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+    private static final Logger LOGGER = LogManager.getLogger("HellasWilds");
+    private static final String ENTITLEMENT_KEY = MOD_ID;
+    private static volatile boolean ENABLED = false;
+    private static volatile String DISABLE_REASON = "UNINITIALIZED";
 
     private static boolean pixelmonPresent;
     private static boolean hellasFormsPresent;
@@ -77,7 +83,7 @@ public final class HellasWilds {
      * perform its registrations.
      */
     public static boolean featuresEnabled() {
-        return featureGateOpen;
+        return featureGateOpen && ENABLED;
     }
 
     /**
@@ -122,6 +128,10 @@ public final class HellasWilds {
      */
     private void onCommonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
+            initGate();
+            if (!ENABLED) {
+                return;
+            }
             if (!featuresEnabled()) {
                 LOGGER.warn("HellasWilds initialised in dependency-limited mode. Registrations are skipped.");
                 return;
@@ -137,6 +147,9 @@ public final class HellasWilds {
      * Performs client-only registrations such as tint handlers and tile renderers.
      */
     private void onClientSetup(final FMLClientSetupEvent event) {
+        if (!ENABLED) {
+            return;
+        }
         NetworkRegistry.prepareClient();
         event.enqueueWork(() -> {
             TintHandlers.register();
@@ -150,6 +163,9 @@ public final class HellasWilds {
      * Clears transient zone caches whenever a dedicated server instance is about to boot.
      */
     private void onServerAboutToStart(final FMLServerAboutToStartEvent event) {
+        if (!ENABLED) {
+            return;
+        }
         ZoneCache.get().invalidateAll();
     }
 
@@ -157,6 +173,9 @@ public final class HellasWilds {
      * Loads zone data for each world as it becomes available.
      */
     private void onWorldLoad(final WorldEvent.Load event) {
+        if (!ENABLED) {
+            return;
+        }
         if (event.getWorld() instanceof ServerWorld) {
             ZoneCache.get().load((ServerWorld) event.getWorld());
         }
@@ -166,6 +185,9 @@ public final class HellasWilds {
      * Persists zone definitions whenever a world flushes to disk.
      */
     private void onWorldSave(final WorldEvent.Save event) {
+        if (!ENABLED) {
+            return;
+        }
         if (event.getWorld() instanceof ServerWorld) {
             ZoneCache.get().save((ServerWorld) event.getWorld());
         }
@@ -175,6 +197,9 @@ public final class HellasWilds {
      * Saves every zone and shuts down the optional web UI when the server stops.
      */
     private void onServerStopping(final FMLServerStoppingEvent event) {
+        if (!ENABLED) {
+            return;
+        }
         for (final ServerWorld world : event.getServer().getWorlds()) {
             ZoneCache.get().save(world);
         }
@@ -185,6 +210,37 @@ public final class HellasWilds {
      * Hooks into Forge's command registration event and adds the /hellas wilds namespace.
      */
     private void onRegisterCommands(final RegisterCommandsEvent event) {
+        if (!ENABLED) {
+            return;
+        }
         WildsCommands.register(event.getDispatcher());
+    }
+
+    private void initGate() {
+        if (FMLEnvironment.dist != Dist.DEDICATED_SERVER) {
+            ENABLED = true;
+            DISABLE_REASON = "OK (non-dedicated)";
+            return;
+        }
+
+        if (!ModList.get().isLoaded("hellascontrol")) {
+            ENABLED = false;
+            DISABLE_REASON = "HellasControl missing";
+            LOGGER.warn("[HellasWilds] disabled: {}", DISABLE_REASON);
+            return;
+        }
+
+        try {
+            CoreCheck.verifyCoreLoaded();
+            CoreCheck.verifyEntitled(ENTITLEMENT_KEY);
+
+            ENABLED = true;
+            DISABLE_REASON = "OK";
+            LOGGER.info("[HellasWilds] enabled (license OK) entitlement='{}'", ENTITLEMENT_KEY);
+        } catch (Exception e) {
+            ENABLED = false;
+            DISABLE_REASON = "License invalid";
+            LOGGER.warn("[HellasWilds] disabled: {} entitlement='{}'", DISABLE_REASON, ENTITLEMENT_KEY, e);
+        }
     }
 }
